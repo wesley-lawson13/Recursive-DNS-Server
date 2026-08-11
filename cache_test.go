@@ -28,8 +28,8 @@ func TestAddRecords(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		calls    [][]record 
-		wantData []string   // Data of each surviving record, in order; nil means no entry
+		calls    [][]record
+		wantData []string // Data of each surviving record, in order; nil means no entry
 	}{
 		{
 			name:     "new entry is cached",

@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+type cacheKey struct {
+	Name  string
+	Class uint16
+	QType uint16
+}
+
 type cache struct {
 	mu    sync.RWMutex
 	items map[cacheKey][]record
@@ -39,7 +45,7 @@ func (ch *cache) returnRecords(query question) ([]record, bool) {
 
 	ch.mu.RLock()
 	recs, ok := ch.items[key]
-	ch.mu.RUnlock()
+	ch.mu.RUnlock() // release before copying so we don't hold the lock during allocation
 
 	if !ok || len(recs) == 0 {
 		return nil, false
@@ -68,6 +74,8 @@ func (ch *cache) update() {
 		for i := range item {
 			rec := item[i]
 			if !rec.expired(now) {
+				// count down TTL by elapsed seconds and reset AddedAt so
+				// the next update call measures from this point forward
 				elapsed := uint32(now.Sub(rec.AddedAt).Seconds())
 				rec.TTL -= elapsed
 				rec.AddedAt = now

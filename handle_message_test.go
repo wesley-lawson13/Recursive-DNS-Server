@@ -299,7 +299,7 @@ func TestHandleMessage_QueryFlow(t *testing.T) {
 	}
 }
 
-// end-to-end integration test for replies, ensuring that it reaches the original 
+// end-to-end integration test for replies, ensuring that it reaches the original
 // client and gets cached.
 func TestHandleMessage_ReplyFlow(t *testing.T) {
 	ch := initCache(t)

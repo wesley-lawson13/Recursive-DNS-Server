@@ -15,7 +15,7 @@ type record struct {
 	TTL     uint32
 	DLen    uint16
 	Data    string
-	AddedAt time.Time
+	AddedAt time.Time // cache bookkeeping only; not part of the DNS wire format
 }
 
 // only support two record types for now
@@ -30,7 +30,7 @@ func newRecord(recordLine string) (record, error) {
 
 	fields := strings.Fields(recordLine)
 	if len(fields) != 5 {
-		return rec, errors.New("invalid record format")
+		return rec, fmt.Errorf("invalid zone format: had %d fields, expecting 5", len(fields))
 	}
 
 	ttl, err := strconv.ParseUint(fields[1], 10, 32)
@@ -48,6 +48,7 @@ func newRecord(recordLine string) (record, error) {
 		return rec, err3
 	}
 
+	// will never err -- qtype will always be verified to this point
 	dlen, err4 := getDataLen(qtype, fields[4])
 	if err4 != nil {
 		return rec, err4
@@ -128,7 +129,7 @@ func getDataLen(qtype uint16, data string) (uint16, error) {
 
 		// CNAME records store names
 	} else if qtype == 5 {
-		// have to account for the zero byte
+		// wire format: each dot maps 1:1 to a label-length byte, plus 1 leading
 		return uint16(len(data) + 2), nil
 	}
 
