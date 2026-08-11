@@ -1,6 +1,6 @@
 # DNS Server
 
-A recursive DNS forwarder implemented in Go from scratch, communicating over raw UDP sockets and parsing the DNS wire format (RFC 1035) manually — no DNS libraries used. Initially developed during my Boston College Computer Networks course, and extended to fix transaction ID collision, add safety measures for concurrent connection, and clean up files from the original submission.
+A recursive DNS forwarder implemented in Go from scratch, communicating over raw UDP sockets and parsing the DNS wire format (RFC 1035) manually — no DNS libraries used. Initially developed during my Boston College Computer Networks course, I have extended this project to fix transaction ID collision, add safety measures for concurrent connection, add unit and integration tests that validate these safety measures and assert the correctness of the server's logic, and clean up / refactor files from the original submission.
 
 ## How It Works
 
