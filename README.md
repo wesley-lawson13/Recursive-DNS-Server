@@ -50,3 +50,37 @@ In another terminal window, test with `dig`:
 dig @localhost test1.csci3363.net A
 dig @localhost google.com A
 ```
+
+## Testing
+
+Coverage: **86.5%** (`go test ./... -cover`)
+
+Description of Unit Tests: 
+- message parsing/serialization (`message_test.go`) 
+- record encoding (`record_test.go`) 
+- zone file loading (`zone_test.go`) 
+- the TTL cache (`cache_test.go`) 
+- the pending-query table (`pending_test.go`, with a concurrent store/pop test ran with `-race`)
+
+### End-to-end integration tests
+
+`handle_message_test.go` includes two full-stack tests that exercise `handleMessage`, the main loop that handles the core work in `main.go`.
+
+- **`TestHandleMessage_QueryFlow`** — a client socket sends a wire-format query for a zone-authoritative name to the server's `handleMessage`. Covers: buffer parsing, zone lookup, response encoding, and delivery back to the querying `net.Addr` — asserting the reply carries the original transaction ID, the `AA` flag, and the expected answer count.
+- **`TestHandleMessage_ReplyFlow`** — a pending query is seeded (as if already forwarded upstream), then an upstream reply arrives at `handleMessage` over a loopback socket. Covers: transaction-ID lookup in the pending table, ID rewrite back to the original client's ID, delivery to the *original client's* socket (not the upstream one), and that the answer is written into the cache as a side effect.
+
+### Running the tests
+
+```
+go test ./...              # run the full suite
+go test ./... -v           # verbose, per-test output
+go test ./... -cover       # with coverage summary
+go test ./... -race        # with the race detector (covers concurrent cache/pending access)
+```
+
+To see coverage by function:
+
+```
+go test ./... -coverprofile=cover.out
+go tool cover -func=cover.out
+```

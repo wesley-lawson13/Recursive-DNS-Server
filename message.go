@@ -68,7 +68,7 @@ func newMessage(buf []byte) (message, error) {
 
 	// parse all the answers
 	msg.ans = make([]record, 0)
-	for _ = range msg.hdr.NumAnswers {
+	for range msg.hdr.NumAnswers {
 		err = msg.parseAnswer(bufr, buf)
 		if err != nil {
 			return msg, err
@@ -112,12 +112,14 @@ func parseCompressedName(labellen byte, bufr *bytes.Reader, buf []byte) (string,
 	}
 
 	offset := uint16(labellen)<<8 | uint16(next)
-	offset = offset & 0x3ff
+	offset = offset & 0x3ff // strip the top 2 flag bits (0xC0) per RFC 1035 §4.1.4 pointer format
 
 	return parseName(bytes.NewReader(buf[offset:]), buf)
 }
 
-// read the next name label from the message buffer
+// read the next name label from the message buffer.
+// done=true means the name is fully consumed (either via a compression pointer or a parse error);
+// the caller must stop reading further labels.
 func parseLabel(bufr *bytes.Reader, buf []byte) (string, error, bool) {
 	var labelLen, next byte
 	var label string

@@ -32,14 +32,14 @@ func newZone(filename string) (zone, error) {
 		// parse one line into a record struct
 		rec, err2 := newRecord(line)
 		if err2 != nil {
-			return zn, err2
+			return zone{}, err2
 		}
 
 		zn.records = append(zn.records, rec)
 	}
 
 	if err := scanner.Err(); err != nil {
-		return zn, err
+		return zone{}, err
 	}
 
 	if len(zn.records) == 0 {

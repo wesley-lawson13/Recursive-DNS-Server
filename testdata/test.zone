@@ -1,0 +1,4 @@
+test.csci3363.net  300 IN  A   1.2.3.4
+test.csci3363.net  300 IN  A   1.2.3.5
+alias.csci3363.net 300 IN  CNAME   test.csci3363.net
+mail.csci3363.net  600 IN  A   10.0.0.1
