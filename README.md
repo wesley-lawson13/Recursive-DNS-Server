@@ -53,18 +53,21 @@ dig @localhost google.com A
 
 ## Testing
 
-The suite covers **86.5%** of statements (`go test ./... -cover`), across 50 tests spanning every file: unit tests for message parsing/serialization (`message_test.go`), record encoding (`record_test.go`), zone file loading (`zone_test.go`), the TTL cache (`cache_test.go`), and the pending-query table (`pending_test.go`, including a concurrent store/pop test run with `-race`), plus the end-to-end integration tests described below.
+Coverage: **86.5%** (`go test ./... -cover`)
+
+Description of Unit Tests: 
+- message parsing/serialization (`message_test.go`) 
+- record encoding (`record_test.go`) 
+- zone file loading (`zone_test.go`) 
+- the TTL cache (`cache_test.go`) 
+- the pending-query table (`pending_test.go`, with a concurrent store/pop test ran with `-race`)
 
 ### End-to-end integration tests
 
-`handle_message_test.go` includes two full-stack tests that exercise `handleMessage` exactly as `main.go` would call it: real loopback UDP sockets stand in for the client and upstream resolver, a real wire-format buffer is built and parsed (no mocked message objects), and the test asserts on bytes actually received off the socket.
+`handle_message_test.go` includes two full-stack tests that exercise `handleMessage`, the main loop that handles the core work in `main.go`.
 
 - **`TestHandleMessage_QueryFlow`** — a client socket sends a wire-format query for a zone-authoritative name to the server's `handleMessage`. Covers: buffer parsing, zone lookup, response encoding, and delivery back to the querying `net.Addr` — asserting the reply carries the original transaction ID, the `AA` flag, and the expected answer count.
 - **`TestHandleMessage_ReplyFlow`** — a pending query is seeded (as if already forwarded upstream), then an upstream reply arrives at `handleMessage` over a loopback socket. Covers: transaction-ID lookup in the pending table, ID rewrite back to the original client's ID, delivery to the *original client's* socket (not the upstream one), and that the answer is written into the cache as a side effect.
-
-Together these two catch regressions that unit tests on individual functions can't: wire-format round-tripping through real sockets, correct routing of bytes to the correct `net.Addr`, and the interaction between `handleMessage`, the zone, the cache, and the pending-query table.
-
-The remaining `TestHandleMessage_*` and `TestHandleQuery_*` / `TestHandleReply_*` tests in the same file are narrower unit/socket tests (malformed input, unknown reply IDs, cache eviction on request) that isolate individual branches of `handleMessage`, `handleQuery`, and `handleReply` without exercising the full send/receive path.
 
 ### Running the tests
 
